@@ -1,0 +1,13 @@
+{
+  "name": "Movie Hangout",
+  "short_name": "Movie Hangout",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#28a745",
+  "background_color": "#28a745"
+}

@@ -10,14 +10,23 @@ import { getSiteName } from "../lib/env"
 
 export default function Dashboard() {
   const router = useRouter()
-  const { data } = useSWR("/api/stats", (url) =>
-    fetch(url).then((r) => r.json())
-  )
+  const { data } = useSWR("/api/stats", async (url) => {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+    return response.json()
+  })
   const [room, setRoom] = useState("")
 
   const createNewRoom = () => {
     fetch("/api/generate")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) {
+          throw new Error(`HTTP ${r.status}: ${r.statusText}`)
+        }
+        return r.json()
+      })
       .then(async ({ roomId }) => {
         if (
           typeof roomId === "string" &&
@@ -32,6 +41,7 @@ export default function Dashboard() {
       })
       .catch((error) => {
         console.error("Failed to generate new roomId", error)
+        alert("Failed to create room. Please try again.")
       })
   }
 

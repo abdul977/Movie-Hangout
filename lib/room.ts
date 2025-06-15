@@ -1,4 +1,4 @@
-import { PlayerState, RoomState } from "./types"
+import { PlayerState, RoomState, UserState } from "./types"
 import { getRandomName, getTargetTime } from "./utils"
 import { getDefaultSrc } from "./env"
 import { getRoom, setRoom } from "./cache"
@@ -22,7 +22,7 @@ export const createNewUser = async (roomId: string, socketId: string) => {
 
   const users = room.users
   let name = getRandomName()
-  while (users.some((user) => user.name === name)) {
+  while (users.some((user: UserState) => user.name === name)) {
     name = getRandomName()
   }
 

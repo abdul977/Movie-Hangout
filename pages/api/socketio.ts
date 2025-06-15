@@ -40,19 +40,21 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
 
     const broadcast = async (room: string | RoomState) => {
       const roomId = typeof room === "string" ? room : room.id
+      let roomData: RoomState
 
       if (typeof room !== "string") {
-        await setRoom(roomId, room)
+        roomData = room
+        await setRoom(roomId, roomData)
       } else {
         const d = await getRoom(roomId)
         if (d === null) {
           throw Error("Impossible room state of null for room: " + roomId)
         }
-        room = d
+        roomData = d
       }
 
-      room.serverTime = new Date().getTime()
-      io.to(roomId).emit("update", room)
+      roomData.serverTime = new Date().getTime()
+      io.to(roomId).emit("update", roomData)
     }
 
     io.on(
@@ -91,7 +93,7 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
         // Send join message to chat
         const room = await getRoom(roomId)
         if (room) {
-          const user = room.users.find(u => u.socketIds[0] === socket.id)
+          const user = room.users.find((u: UserState) => u.socketIds[0] === socket.id)
           if (user) {
             const joinMessage: ChatMessage = {
               id: `join-${Date.now()}-${socket.id}`,
@@ -114,11 +116,11 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
 
           // Find the user who's leaving for the leave message
           const leavingUser = room.users.find(
-            (user) => user.socketIds[0] === socket.id
+            (user: UserState) => user.socketIds[0] === socket.id
           )
 
           room.users = room.users.filter(
-            (user) => user.socketIds[0] !== socket.id
+            (user: UserState) => user.socketIds[0] !== socket.id
           )
 
           // Send leave message to chat if user was found
@@ -192,7 +194,7 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
             throw new Error("Setting progress for non existing room:" + roomId)
           }
 
-          room.users = room.users.map((user) => {
+          room.users = room.users.map((user: UserState) => {
             if (user.socketIds[0] === socket.id) {
               user.player.progress = progress
             }
@@ -251,7 +253,7 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
             room.targetState.paused = false
           } else {
             room.targetState.progress =
-              room.users.find((user) => user.socketIds[0] === socket.id)?.player
+              room.users.find((user: UserState) => user.socketIds[0] === socket.id)?.player
                 .progress || 0
             room.targetState.paused = true
           }
@@ -325,7 +327,7 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
           }
           log("user update", user)
 
-          room.users = room.users.map((u) => {
+          room.users = room.users.map((u: UserState) => {
             if (u.socketIds[0] !== socket.id) {
               return u
             }
@@ -384,7 +386,7 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
           }
 
           // Find the user who sent the message
-          const user = room.users.find(u => u.socketIds[0] === socket.id)
+          const user = room.users.find((u: UserState) => u.socketIds[0] === socket.id)
           if (!user) {
             log("User not found in room, cannot send message")
             return
@@ -419,7 +421,7 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
           const room = await getRoom(roomId)
           if (room === null) return
 
-          const user = room.users.find(u => u.socketIds[0] === socket.id)
+          const user = room.users.find((u: UserState) => u.socketIds[0] === socket.id)
           if (!user) return
 
           if (isTyping) {

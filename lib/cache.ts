@@ -13,11 +13,8 @@ if (redisUrl && redisUrl !== "redis://localhost:6379") {
       url: redisUrl,
       socket: {
         connectTimeout: 5000,
-        lazyConnect: true,
-      },
-      retryDelayOnFailover: 100,
-      retryDelayOnClusterDown: 300,
-      maxRetriesPerRequest: 3,
+        reconnectStrategy: (retries) => Math.min(retries * 50, 500)
+      }
     })
 
     // Initialize connection
@@ -47,7 +44,7 @@ if (client) {
     console.log("Trying to reconnect to redis server ...")
   })
 
-  client.on("error", (error) => {
+  client.on("error", (error: Error) => {
     console.error("Failed to contact redis server due to:", error)
     isConnected = false
   })
@@ -339,7 +336,7 @@ export const getChatHistory = async (roomId: string, count: number = 50): Promis
       // Get last 'count' messages from the stream
       const messages = await client.xRevRange(streamKey, '+', '-', { COUNT: count })
 
-      return messages.reverse().map(msg => ({
+      return messages.reverse().map((msg: any) => ({
         id: msg.message.id as string,
         userId: msg.message.userId as string,
         userName: msg.message.userName as string,

@@ -31,10 +31,13 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
         path: "/api/socketio",
         cors: {
           origin: process.env.PUBLIC_DOMAIN || "*",
-          methods: ["GET", "POST"]
+          methods: ["GET", "POST"],
+          credentials: true
         },
-        transports: ['websocket', 'polling'],
-        allowEIO3: true
+        transports: ['polling', 'websocket'],
+        allowEIO3: true,
+        pingTimeout: 60000,
+        pingInterval: 25000
       }
     )
 

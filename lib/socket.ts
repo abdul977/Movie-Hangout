@@ -63,8 +63,10 @@ export function createClientSocket(roomId: string) {
     query: {
       roomId,
     },
-    transports: ["websocket"],
+    transports: ["polling", "websocket"],
     path: "/api/socketio",
+    upgrade: true,
+    rememberUpgrade: true,
   })
 
   socket.on("connect", () => {

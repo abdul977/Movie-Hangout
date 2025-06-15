@@ -11,9 +11,14 @@ const nextConfig = {
     DEFAULT_SRC: process.env.DEFAULT_SRC,
   },
   images: {
-    domains: [
-        'api.dicebear.com'
-    ]
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   async headers() {
     return [

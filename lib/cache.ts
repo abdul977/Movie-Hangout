@@ -2,42 +2,73 @@ import { createClient } from "redis"
 import { getRedisURL } from "./env"
 import { RoomState, ChatMessage } from "./types"
 
-const client = createClient({
-  url: getRedisURL(),
-})
-
+const redisUrl = getRedisURL()
+let client: any = null
 let isConnected = false
 
-;(async () => {
+// Only create Redis client if URL is properly configured
+if (redisUrl && redisUrl !== "redis://localhost:6379") {
   try {
-    await client.connect()
-    isConnected = true
-    console.log("Connected to Redis server")
+    client = createClient({
+      url: redisUrl,
+      socket: {
+        connectTimeout: 5000,
+        lazyConnect: true,
+      },
+      retryDelayOnFailover: 100,
+      retryDelayOnClusterDown: 300,
+      maxRetriesPerRequest: 3,
+    })
+
+    // Initialize connection
+    ;(async () => {
+      try {
+        await client.connect()
+        isConnected = true
+        console.log("Connected to Redis server successfully")
+      } catch (error) {
+        console.warn("Redis connection failed, running in memory-only mode:", error)
+        isConnected = false
+        client = null
+      }
+    })()
   } catch (error) {
-    console.warn("Redis connection failed, running in memory-only mode:", error)
+    console.warn("Failed to create Redis client, using memory-only mode:", error)
+    client = null
     isConnected = false
   }
-})()
+} else {
+  console.log("Redis URL not configured or using localhost, running in memory-only mode")
+}
 
-client.on("reconnecting", () => {
-  console.log("Trying to reconnect to redis server ...")
-})
-client.on("error", (error) => {
-  console.error("Failed to contact redis server due to:", error)
-  isConnected = false
-})
+// Set up event handlers only if client exists
+if (client) {
+  client.on("reconnecting", () => {
+    console.log("Trying to reconnect to redis server ...")
+  })
 
-client.on("connect", () => {
-  isConnected = true
-  console.log("Redis connected successfully")
-})
+  client.on("error", (error) => {
+    console.error("Failed to contact redis server due to:", error)
+    isConnected = false
+  })
+
+  client.on("connect", () => {
+    isConnected = true
+    console.log("Redis connected successfully")
+  })
+
+  client.on("end", () => {
+    isConnected = false
+    console.log("Redis connection ended")
+  })
+}
 
 // In-memory fallback storage for development
 const memoryStore = new Map<string, string>()
 
 export const getRoom = async (roomId: string) => {
   try {
-    if (isConnected) {
+    if (isConnected && client) {
       const data = await client.get("room:" + roomId)
       if (data === null) {
         return data
@@ -52,22 +83,38 @@ export const getRoom = async (roomId: string) => {
       return JSON.parse(data) as RoomState
     }
   } catch (error) {
-    console.warn("Error getting room from cache:", error)
-    return null
+    console.warn("Error getting room from cache, falling back to memory:", error)
+    // Fallback to memory store on Redis error
+    try {
+      const data = memoryStore.get("room:" + roomId)
+      if (data === undefined) {
+        return null
+      }
+      return JSON.parse(data) as RoomState
+    } catch (memError) {
+      console.error("Memory fallback also failed:", memError)
+      return null
+    }
   }
 }
 
 export const roomExists = async (roomId: string) => {
   try {
-    if (isConnected) {
+    if (isConnected && client) {
       return await client.exists("room:" + roomId)
     } else {
       // Fallback to memory store
       return memoryStore.has("room:" + roomId) ? 1 : 0
     }
   } catch (error) {
-    console.warn("Error checking room existence:", error)
-    return 0
+    console.warn("Error checking room existence, falling back to memory:", error)
+    // Fallback to memory store on Redis error
+    try {
+      return memoryStore.has("room:" + roomId) ? 1 : 0
+    } catch (memError) {
+      console.error("Memory fallback also failed:", memError)
+      return 0
+    }
   }
 }
 
@@ -126,7 +173,7 @@ export const deleteRoom = async (roomId: string) => {
 
 export const listRooms = async () => {
   try {
-    if (isConnected) {
+    if (isConnected && client) {
       return await client.sMembers("rooms")
     } else {
       // Fallback to memory store
@@ -135,14 +182,22 @@ export const listRooms = async () => {
       return existingRooms ? JSON.parse(existingRooms) : []
     }
   } catch (error) {
-    console.warn("Error listing rooms from cache:", error)
-    return []
+    console.warn("Error listing rooms from cache, falling back to memory:", error)
+    // Fallback to memory store on Redis error
+    try {
+      const roomsKey = "rooms"
+      const existingRooms = memoryStore.get(roomsKey)
+      return existingRooms ? JSON.parse(existingRooms) : []
+    } catch (memError) {
+      console.error("Memory fallback also failed:", memError)
+      return []
+    }
   }
 }
 
 export const countRooms = async () => {
   try {
-    if (isConnected) {
+    if (isConnected && client) {
       return await client.sCard("rooms")
     } else {
       // Fallback to memory store
@@ -151,14 +206,22 @@ export const countRooms = async () => {
       return existingRooms ? JSON.parse(existingRooms).length : 0
     }
   } catch (error) {
-    console.warn("Error counting rooms from cache:", error)
-    return 0
+    console.warn("Error counting rooms from cache, falling back to memory:", error)
+    // Fallback to memory store on Redis error
+    try {
+      const roomsKey = "rooms"
+      const existingRooms = memoryStore.get(roomsKey)
+      return existingRooms ? JSON.parse(existingRooms).length : 0
+    } catch (memError) {
+      console.error("Memory fallback also failed:", memError)
+      return 0
+    }
   }
 }
 
 export const countUsers = async () => {
   try {
-    if (isConnected) {
+    if (isConnected && client) {
       const count = await client.get("userCount")
       if (count === null) {
         return 0
@@ -170,8 +233,15 @@ export const countUsers = async () => {
       return count ? parseInt(count) : 0
     }
   } catch (error) {
-    console.warn("Error counting users from cache:", error)
-    return 0
+    console.warn("Error counting users from cache, falling back to memory:", error)
+    // Fallback to memory store on Redis error
+    try {
+      const count = memoryStore.get("userCount")
+      return count ? parseInt(count) : 0
+    } catch (memError) {
+      console.error("Memory fallback also failed:", memError)
+      return 0
+    }
   }
 }
 

@@ -3,10 +3,17 @@ import { generateId } from "../../lib/utils"
 import { NextApiRequest, NextApiResponse } from "next"
 
 export default async function generate(
-  _: NextApiRequest,
+  req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Allow GET requests (as used by frontend)
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
   try {
+    console.log('Generate API called - creating new room ID')
+
     const rooms = await listRooms()
     let length = 4
     if (rooms.length > 2000) {
@@ -16,13 +23,27 @@ export default async function generate(
     }
 
     let newRoomId = generateId(length)
-    while (rooms.includes(newRoomId)) {
+    let attempts = 0
+    const maxAttempts = 10
+
+    // Prevent infinite loops
+    while (rooms.includes(newRoomId) && attempts < maxAttempts) {
       newRoomId = generateId(length)
+      attempts++
     }
 
+    if (attempts >= maxAttempts) {
+      console.warn('Max attempts reached generating unique room ID, using longer ID')
+      newRoomId = generateId(length + 1)
+    }
+
+    console.log(`Generated new room ID: ${newRoomId}`)
     res.status(200).json({ roomId: newRoomId })
   } catch (error) {
     console.error("Error generating room ID:", error)
-    res.status(500).json({ error: "Failed to generate room ID" })
+    // Fallback to generating a simple ID even if cache fails
+    const fallbackId = generateId(6)
+    console.log(`Using fallback room ID: ${fallbackId}`)
+    res.status(200).json({ roomId: fallbackId })
   }
 }

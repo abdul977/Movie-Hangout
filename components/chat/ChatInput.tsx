@@ -67,8 +67,8 @@ const ChatInput: FC<Props> = ({ onSendMessage, onTyping }) => {
   }, [])
 
   return (
-    <form onSubmit={handleSubmit} className="p-3 border-t border-dark-700">
-      <div className="flex space-x-2">
+    <form onSubmit={handleSubmit} className="p-3 border-t border-dark-700 bg-dark-900">
+      <div className="flex gap-2">
         <input
           ref={inputRef}
           type="text"
@@ -77,13 +77,13 @@ const ChatInput: FC<Props> = ({ onSendMessage, onTyping }) => {
           onKeyDown={handleKeyDown}
           onBlur={handleStopTyping}
           placeholder="Type a message..."
-          className="flex-1 px-3 py-2 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+          className="flex-1 px-3 py-3 bg-dark-800 border border-dark-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-800 transition-colors min-h-[44px]"
           maxLength={500}
         />
         <button
           type="submit"
           disabled={!message.trim()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+          className="px-4 py-3 bg-primary-900 hover:bg-primary-800 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium min-h-[44px] min-w-[60px] flex items-center justify-center"
         >
           Send
         </button>

@@ -17,10 +17,28 @@ body {
   @apply stroke-white fill-white bg-dark-1000;
 }
 
+/* Improved touch targets for mobile */
+@media (max-width: 640px) {
+  html {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  /* Ensure minimum touch target size */
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 .action {
   @apply outline-none;
   @apply hover:bg-dark-700 hover:drop-shadow-lg;
   @apply active:bg-dark-600;
+  /* Improve touch feedback */
+  @apply transition-colors duration-150;
 }
 
 .action > * {
@@ -35,6 +53,61 @@ body {
   @apply bg-dark-600;
 }
 
+/* Mobile-specific utilities */
 .hide-below-sm {
   @apply hidden sm:inline-block;
+}
+
+.show-below-sm {
+  @apply block sm:hidden;
+}
+
+.mobile-padding {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+.mobile-text {
+  @apply text-sm sm:text-base;
+}
+
+.mobile-heading {
+  @apply text-2xl sm:text-3xl lg:text-4xl;
+}
+
+.mobile-subheading {
+  @apply text-lg sm:text-xl lg:text-2xl;
+}
+
+/* Touch-friendly spacing */
+.mobile-touch-spacing {
+  @apply space-y-4 sm:space-y-2;
+}
+
+/* Mobile-optimized containers */
+.mobile-container {
+  @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
+}
+
+/* Smooth scrolling for mobile navigation */
+@media (max-width: 640px) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Mobile-friendly modal backdrop */
+.mobile-modal-backdrop {
+  @apply fixed inset-0 bg-black/50 z-40;
+  backdrop-filter: blur(2px);
+}
+
+/* Mobile chat positioning */
+.mobile-chat {
+  @apply fixed bottom-4 right-4 z-30;
+}
+
+@media (max-width: 640px) {
+  .mobile-chat {
+    @apply bottom-2 right-2 left-2;
+  }
 }

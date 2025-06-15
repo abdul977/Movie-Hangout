@@ -49,6 +49,27 @@ sure that everyone stays synchronised and there is no feedback loop of commands.
 
 ## Getting started
 
+You can deploy this application in several ways:
+
+### Deploy to Vercel (Recommended)
+
+The easiest way to deploy Movie Hangout is using [Vercel](https://vercel.com):
+
+1. **Fork this repository** to your GitHub account
+2. **Set up Redis**: Create a free Redis database at [Upstash](https://upstash.com/)
+3. **Deploy to Vercel**:
+   - Connect your GitHub repository to Vercel
+   - Add the following environment variables in Vercel dashboard:
+     - `SITE_NAME`: "Movie Hangout" (or your preferred name)
+     - `PUBLIC_DOMAIN`: Your Vercel app URL (e.g., `https://your-app.vercel.app`)
+     - `REDIS_URL`: Your Upstash Redis connection string
+     - `DEFAULT_SRC`: (optional) Default video URL
+4. **Deploy**: Vercel will automatically build and deploy your app
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/abdul977/Movie-Hangout)
+
+### Docker Deployment
+
 To run this software on your own hardware, you will need to have [Docker](https://www.docker.com/) or any other
 container engine installed.
 

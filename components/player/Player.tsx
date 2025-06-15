@@ -245,11 +245,17 @@ const Player: FC<Props> = ({ roomId, socket, fullHeight }) => {
     >
       <ReactPlayer
         style={{
-          maxHeight: fullscreen || fullHeight ? "100vh" : "calc(100vh - 210px)",
+          maxHeight: fullscreen || fullHeight ? "100vh" : "calc(100vh - 280px)",
         }}
         ref={player}
-        width={"100%"}
-        height={fullscreen || fullHeight ? "100vh" : "calc((9 / 16) * 100vw)"}
+        width="100%"
+        height={
+          fullscreen || fullHeight
+            ? "100vh"
+            : isBrowser() && window.innerWidth < 640
+              ? "calc(100vw * 9 / 16)"
+              : "calc(min(100vw, 1200px) * 9 / 16)"
+        }
         config={{
           youtube: {
             playerVars: {
@@ -421,7 +427,7 @@ const Player: FC<Props> = ({ roomId, socket, fullHeight }) => {
         playAgain={() => socket?.emit("playAgain")}
       />
 
-      <div className={"absolute top-1 left-1 flex flex-col gap-1 p-1"}>
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-2 p-2 z-10">
         {!connected && <ConnectingAlert canClose={false} />}
         {buffering && <BufferAlert canClose={false} />}
         {!unmuted && (

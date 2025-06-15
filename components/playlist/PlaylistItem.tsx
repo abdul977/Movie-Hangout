@@ -57,7 +57,7 @@ const PlaylistItem: FC<Props> = ({
     if (item.title && item.title !== "" && item.title !== title) {
       setTitle(item.title || "")
     }
-  }, [edit, item.title, title])
+  }, [edit, item.title, title, updateTitle])
 
   return (
     <Draggable

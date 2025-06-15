@@ -20,10 +20,10 @@ const Layout: FC<Props> = ({
   children,
 }) => {
   return (
-    <div className={"flex flex-col min-h-screen"}>
+    <div className="flex flex-col min-h-screen">
       <Head customMeta={meta} />
       {showNavbar && (
-        <header>
+        <header className="sticky top-0 z-50">
           <Navbar roomId={roomId} />
         </header>
       )}
@@ -32,7 +32,9 @@ const Layout: FC<Props> = ({
         <NoScriptAlert />
       </noscript>
 
-      <main className={"relative flex flex-col grow p-2"}>{children}</main>
+      <main className="relative flex flex-col grow mobile-padding py-2 sm:p-2">
+        {children}
+      </main>
 
       <Footer error={error} />
     </div>

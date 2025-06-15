@@ -26,11 +26,17 @@ const Button: FC<Props> = ({
     <button
       id={id}
       data-tooltip-content={tooltip}
-      data-tooltip-variant={"dark"}
+      data-tooltip-variant="dark"
       onClick={onClick}
       type={type}
       disabled={disabled}
-      className={classNames("p-2 rounded", actionClasses, className)}
+      className={classNames(
+        "p-2 rounded transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary-800 focus:ring-opacity-50",
+        "min-h-[44px] min-w-[44px] flex items-center justify-center",
+        actionClasses,
+        className,
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
     >
       {children}
     </button>

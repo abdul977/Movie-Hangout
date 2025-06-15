@@ -5,6 +5,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '475px',
+      },
       colors: {
         dark: {
           400: "#666666",
@@ -23,6 +26,18 @@ module.exports = {
         accent: {
           900: "#4D7EA8",
         },
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+      minHeight: {
+        '12': '3rem',
+        '16': '4rem',
+      },
+      maxWidth: {
+        '8xl': '88rem',
+        '9xl': '96rem',
       },
     },
   },

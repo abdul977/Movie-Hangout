@@ -13,7 +13,6 @@ import {
   getChatHistory,
   addTypingUser,
   removeTypingUser,
-  getTypingUsers,
   clearChatHistory,
 } from "../../lib/cache"
 import { createNewRoom, createNewUser, updateLastSync } from "../../lib/room"
@@ -30,6 +29,12 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
       res.socket.server,
       {
         path: "/api/socketio",
+        cors: {
+          origin: process.env.PUBLIC_DOMAIN || "*",
+          methods: ["GET", "POST"]
+        },
+        transports: ['websocket', 'polling'],
+        allowEIO3: true
       }
     )
 

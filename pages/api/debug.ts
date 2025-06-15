@@ -8,7 +8,7 @@ export default async function debug(_: NextApiRequest, res: NextApiResponse) {
 
   res.json(
     await Promise.all(
-      (await listRooms()).map(async (room) => await getRoom(room))
+      (await listRooms()).map(async (room: string) => await getRoom(room))
     )
   )
 }

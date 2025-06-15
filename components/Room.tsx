@@ -73,27 +73,29 @@ const Room: FC<Props> = ({ id }) => {
   }
 
   return (
-    <div className={"flex flex-col sm:flex-row gap-1"}>
-      <div className={"grow"}>
+    <div className="flex flex-col lg:flex-row gap-2 sm:gap-4 h-full">
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0">
         <Player roomId={id} socket={socket} />
 
-        <div className={"flex flex-row gap-1 p-1"}>
+        {/* Controls Section */}
+        <div className="flex flex-col sm:flex-row gap-2 p-2 sm:p-4 bg-dark-900 rounded-lg mt-2">
           <Button
-            tooltip={"Do a forced manual sync"}
-            className={"p-2 flex flex-row gap-1 items-center"}
+            tooltip="Do a forced manual sync"
+            className="flex-shrink-0 p-3 flex flex-row gap-2 items-center justify-center sm:justify-start min-h-[48px]"
             onClick={() => {
               console.log("Fetching update", socket?.id)
               socket?.emit("fetch")
             }}
           >
-            <IconLoop className={"hover:animate-spin"} />
-            <div className={"hidden-below-sm"}>Manual sync</div>
+            <IconLoop className="hover:animate-spin" />
+            <span className="hide-below-sm">Manual sync</span>
           </Button>
           <InputUrl
-            className={"grow"}
+            className="flex-1"
             url={url}
-            placeholder={"Play url now"}
-            tooltip={"Play given url now"}
+            placeholder="Enter video URL to play"
+            tooltip="Play given url now"
             onChange={setUrl}
             onSubmit={() => {
               console.log("Requesting", url, "now")
@@ -105,19 +107,27 @@ const Room: FC<Props> = ({ id }) => {
           </InputUrl>
         </div>
 
-        <UserList socket={socket} />
+        {/* User List - Mobile optimized */}
+        <div className="mt-2">
+          <UserList socket={socket} />
+        </div>
       </div>
 
-      <PlaylistMenu socket={socket} />
+      {/* Sidebar for Playlist and Chat */}
+      <div className="flex flex-col lg:w-80 gap-2">
+        <PlaylistMenu socket={socket} />
 
-      {/* Chat Component */}
-      {currentUserId && (
-        <Chat
-          socket={socket}
-          roomId={id}
-          currentUserId={currentUserId}
-        />
-      )}
+        {/* Chat Component - Mobile positioned */}
+        {currentUserId && (
+          <div className="lg:flex-1">
+            <Chat
+              socket={socket}
+              roomId={id}
+              currentUserId={currentUserId}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

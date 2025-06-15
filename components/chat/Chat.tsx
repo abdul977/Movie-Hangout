@@ -84,30 +84,75 @@ const Chat: FC<Props> = ({ socket, roomId, currentUserId }) => {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {/* Chat Toggle Button */}
-      <button
-        onClick={toggleChat}
-        className={`mb-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-          isVisible 
-            ? "bg-red-600 hover:bg-red-700 text-white" 
-            : "bg-blue-600 hover:bg-blue-700 text-white"
-        }`}
-      >
-        {isVisible ? "Close Chat" : "Open Chat"}
-        {unreadCount > 0 && (
-          <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
-            {unreadCount}
-          </span>
-        )}
-      </button>
-
-      {/* Chat Window */}
-      {isVisible && (
-        <div 
-          ref={chatContainerRef}
-          className="w-80 h-96 bg-dark-900 border border-dark-700 rounded-lg shadow-lg flex flex-col"
+    <div className="lg:relative lg:h-full">
+      {/* Mobile: Fixed positioning, Desktop: Relative */}
+      <div className="lg:hidden fixed bottom-4 right-4 z-50">
+        {/* Mobile Chat Toggle Button */}
+        <button
+          onClick={toggleChat}
+          className={`mb-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 min-h-[48px] shadow-lg ${
+            isVisible
+              ? "bg-red-600 hover:bg-red-700 text-white"
+              : "bg-primary-900 hover:bg-primary-800 text-white"
+          }`}
         >
+          💬 {isVisible ? "Close Chat" : "Chat"}
+          {unreadCount > 0 && (
+            <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        {/* Mobile Chat Window */}
+        {isVisible && (
+          <div
+            ref={chatContainerRef}
+            className="w-80 max-w-[calc(100vw-2rem)] h-96 max-h-[60vh] bg-dark-900 border border-dark-700 rounded-lg shadow-2xl flex flex-col"
+          >
+            {/* Chat Header */}
+            <div className="p-3 border-b border-dark-700 bg-dark-800 rounded-t-lg flex justify-between items-center">
+              <div>
+                <h3 className="text-white font-medium">Room Chat</h3>
+                <p className="text-gray-400 text-sm">{roomId}</p>
+              </div>
+              <button
+                onClick={toggleChat}
+                className="text-gray-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {messages.map((message) => (
+                <ChatMessageItem
+                  key={message.id}
+                  message={message}
+                  isOwnMessage={message.userId === currentUserId}
+                />
+              ))}
+
+              {/* Typing Indicators */}
+              {typingUsers.length > 0 && (
+                <div className="text-gray-400 text-sm italic">
+                  {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Chat Input */}
+            <ChatInput onSendMessage={sendMessage} onTyping={setTyping} />
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Chat - Always visible in sidebar */}
+      <div className="hidden lg:flex lg:flex-col lg:h-full">
+        <div className="bg-dark-900 border border-dark-700 rounded-lg shadow-lg flex flex-col h-full min-h-[400px]">
           {/* Chat Header */}
           <div className="p-3 border-b border-dark-700 bg-dark-800 rounded-t-lg">
             <h3 className="text-white font-medium">Room Chat</h3>
@@ -117,27 +162,27 @@ const Chat: FC<Props> = ({ socket, roomId, currentUserId }) => {
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {messages.map((message) => (
-              <ChatMessageItem 
-                key={message.id} 
-                message={message} 
+              <ChatMessageItem
+                key={message.id}
+                message={message}
                 isOwnMessage={message.userId === currentUserId}
               />
             ))}
-            
+
             {/* Typing Indicators */}
             {typingUsers.length > 0 && (
               <div className="text-gray-400 text-sm italic">
                 {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
           {/* Chat Input */}
           <ChatInput onSendMessage={sendMessage} onTyping={setTyping} />
         </div>
-      )}
+      </div>
     </div>
   )
 }

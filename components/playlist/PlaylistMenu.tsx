@@ -67,76 +67,82 @@ const PlaylistMenu: FC<Props> = ({ socket }) => {
   }
 
   return (
-    <div className={classNames("flex flex-col", expanded && "sm:w-[300px]")}>
+    <div className={classNames("flex flex-col bg-dark-900 rounded-lg border border-dark-700", expanded && "lg:w-full")}>
       <ControlButton
         tooltip={expanded ? "Hide playlist" : "Show playlist"}
         onClick={() => setExpanded(!expanded)}
         interaction={() => {}}
-        className={"flex flex-row gap-1"}
+        className="flex flex-row gap-2 items-center p-3 min-h-[48px] bg-dark-800 rounded-t-lg"
       >
         <IconChevron
           direction={expanded ? "up" : "down"}
-          className={"sm:rotate-90"}
+          className="lg:rotate-0"
         />
-        <div className={classNames(!expanded && "sm:hidden")}>
-          {expanded ? "Hide" : "Show"} Playlist
+        <div className="font-medium text-white">
+          {expanded ? "Hide" : "Show"} Playlist ({playlist.items.length})
         </div>
       </ControlButton>
       {expanded && (
-        <>
+        <div className="p-3 space-y-3">
           <InputUrl
             url={url}
-            placeholder={"Add url..."}
-            tooltip={"Add url to the playlist"}
+            placeholder="Add video URL to playlist..."
+            tooltip="Add url to the playlist"
             onChange={setUrl}
-            className={"my-1"}
             onSubmit={() => addItem(url)}
           >
             Add
           </InputUrl>
-          <DragDropContext
-            onDragEnd={(result) => {
-              if (!result.destination) {
-                return
-              }
 
-              const newPlaylist: Playlist = JSON.parse(JSON.stringify(playlist))
-              newPlaylist.items.splice(result.source.index, 1)
-              newPlaylist.items.splice(
-                result.destination.index,
-                0,
-                playlist.items[result.source.index]
-              )
+          {playlist.items.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              <div className="text-4xl mb-2">📝</div>
+              <p>No videos in playlist</p>
+              <p className="text-sm">Add a URL above to get started</p>
+            </div>
+          ) : (
+            <DragDropContext
+              onDragEnd={(result) => {
+                if (!result.destination) {
+                  return
+                }
 
-              if (
-                playlist.currentIndex > result.source.index &&
-                playlist.currentIndex < result.destination.index
-              ) {
-                newPlaylist.currentIndex--
-              } else if (
-                playlist.currentIndex < result.source.index &&
-                playlist.currentIndex > result.destination.index
-              ) {
-                newPlaylist.currentIndex++
-              } else if (playlist.currentIndex === result.source.index) {
-                newPlaylist.currentIndex = result.destination.index
-              }
+                const newPlaylist: Playlist = JSON.parse(JSON.stringify(playlist))
+                newPlaylist.items.splice(result.source.index, 1)
+                newPlaylist.items.splice(
+                  result.destination.index,
+                  0,
+                  playlist.items[result.source.index]
+                )
 
-              console.log("Playlist updated to:", newPlaylist)
-              socket.emit("updatePlaylist", newPlaylist)
-            }}
-          >
-            <Droppable droppableId={"playlistMenu"}>
-              {(provided, snapshot) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className={classNames(
-                    "flex flex-col rounded gap-1",
-                    snapshot.isDraggingOver && "bg-dark-800"
-                  )}
-                >
-                  <>
+                if (
+                  playlist.currentIndex > result.source.index &&
+                  playlist.currentIndex < result.destination.index
+                ) {
+                  newPlaylist.currentIndex--
+                } else if (
+                  playlist.currentIndex < result.source.index &&
+                  playlist.currentIndex > result.destination.index
+                ) {
+                  newPlaylist.currentIndex++
+                } else if (playlist.currentIndex === result.source.index) {
+                  newPlaylist.currentIndex = result.destination.index
+                }
+
+                console.log("Playlist updated to:", newPlaylist)
+                socket.emit("updatePlaylist", newPlaylist)
+              }}
+            >
+              <Droppable droppableId="playlistMenu">
+                {(provided, snapshot) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className={classNames(
+                      "flex flex-col rounded gap-2 max-h-64 lg:max-h-96 overflow-y-auto",
+                      snapshot.isDraggingOver && "bg-dark-800"
+                    )}
+                  >
                     {playlist.items.map((item, index) => (
                       <PlaylistItem
                         key={item.src[0].src + "-" + index}
@@ -172,12 +178,12 @@ const PlaylistMenu: FC<Props> = ({ socket }) => {
                       />
                     ))}
                     {provided.placeholder}
-                  </>
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        </>
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )}
+        </div>
       )}
     </div>
   )

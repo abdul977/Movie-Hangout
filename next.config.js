@@ -4,7 +4,6 @@
  * @type {import("next").NextConfig}
  **/
 const nextConfig = {
-  output: 'standalone',
   env: {
     SITE_NAME: process.env.SITE_NAME,
     PUBLIC_DOMAIN: process.env.PUBLIC_DOMAIN,

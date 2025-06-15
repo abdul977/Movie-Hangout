@@ -19,7 +19,9 @@ import { createNewRoom, createNewUser, updateLastSync } from "../../lib/room"
 import { Playlist, RoomState, UserState, ChatMessage } from "../../lib/types"
 import { isUrl } from "../../lib/utils"
 
-const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
+const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
+  console.log("Socket.IO handler called:", req.method, req.url)
+
   // @ts-ignore
   if (res.socket !== null && "server" in res.socket && !res.socket.server.io) {
     console.log("*First use, starting socket.io")
@@ -30,11 +32,11 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
       {
         path: "/api/socketio",
         cors: {
-          origin: process.env.PUBLIC_DOMAIN || "*",
+          origin: "*",
           methods: ["GET", "POST"],
-          credentials: true
+          credentials: false
         },
-        transports: ['polling', 'websocket'],
+        transports: ['polling'],
         allowEIO3: true,
         pingTimeout: 60000,
         pingInterval: 25000
@@ -65,10 +67,13 @@ const ioHandler = (_: NextApiRequest, res: NextApiResponse) => {
       async (
         socket: socketIo.Socket<ClientToServerEvents, ServerToClientEvents>
       ) => {
+        console.log("New socket connection:", socket.id, "transport:", socket.conn.transport.name)
+
         if (
           !("roomId" in socket.handshake.query) ||
           typeof socket.handshake.query.roomId !== "string"
         ) {
+          console.log("Invalid roomId, disconnecting socket:", socket.id)
           socket.disconnect()
           return
         }

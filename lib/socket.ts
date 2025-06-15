@@ -63,17 +63,24 @@ export function createClientSocket(roomId: string) {
     query: {
       roomId,
     },
-    transports: ["polling", "websocket"],
+    transports: ["polling"],
     path: "/api/socketio",
-    upgrade: true,
-    rememberUpgrade: true,
+    upgrade: false,
+    rememberUpgrade: false,
+    forceNew: true,
+    timeout: 20000,
   })
 
   socket.on("connect", () => {
-    console.log("Established ws connection to io server", socket.id)
+    console.log("Established polling connection to io server", socket.id)
+  })
+
+  socket.on("connect_error", (error) => {
+    console.error("Socket connection error:", error)
   })
 
   socket.on("disconnect", (reason) => {
+    console.log("Socket disconnected:", reason)
     if (!["io client disconnect", "io server disconnect"].includes(reason)) {
       console.error(
         "Socket connection closed due to:",

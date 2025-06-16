@@ -7,6 +7,7 @@ import {
   ChatMessage,
 } from "./types"
 import io, { Socket } from "socket.io-client"
+import { createFallbackSocket } from "./socket-fallback"
 
 export interface ServerToClientEvents {
   playlistUpdate: (playlist: Playlist) => void
@@ -59,13 +60,27 @@ export function playItemFromPlaylist(
 
 export function createClientSocket(roomId: string) {
   console.log("Trying to join room", roomId)
-  const socket = io({
+
+  // Check if we should use fallback mode
+  const useFallback = process.env.NEXT_PUBLIC_USE_FALLBACK === 'true'
+
+  if (useFallback) {
+    console.log("Using fallback socket mode")
+    return createFallbackSocket(roomId) as any
+  }
+
+  // Use external socket server for production, local for development
+  const socketUrl = process.env.NODE_ENV === 'production'
+    ? process.env.NEXT_PUBLIC_SOCKET_URL || 'https://your-socket-server.railway.app'
+    : 'http://localhost:3001'
+
+  const socket = io(socketUrl, {
     query: {
       roomId,
     },
-    transports: ["polling"],
-    path: "/api/socketio",
-    upgrade: false,
+    transports: ["polling", "websocket"],
+    path: "/socket.io",
+    upgrade: true,
     rememberUpgrade: false,
     forceNew: true,
     timeout: 20000,

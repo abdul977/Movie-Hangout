@@ -77,6 +77,11 @@ export function createClientSocket(roomId: string) {
 
   socket.on("connect_error", (error) => {
     console.error("Socket connection error:", error)
+    console.error("Error details:", {
+      message: error.message,
+      type: error.type,
+      description: error.description
+    })
   })
 
   socket.on("disconnect", (reason) => {
@@ -89,6 +94,10 @@ export function createClientSocket(roomId: string) {
         socket
       )
     }
+  })
+
+  socket.on("error", (error) => {
+    console.error("Socket error:", error)
   })
 
   return socket

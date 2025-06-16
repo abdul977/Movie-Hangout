@@ -22,26 +22,27 @@ import { isUrl } from "../../lib/utils"
 const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
   console.log("Socket.IO handler called:", req.method, req.url)
 
-  // @ts-ignore
-  if (res.socket !== null && "server" in res.socket && !res.socket.server.io) {
-    console.log("*First use, starting socket.io")
+  try {
+    // @ts-ignore
+    if (res.socket !== null && "server" in res.socket && !res.socket.server.io) {
+      console.log("*First use, starting socket.io")
 
-    const io = new Server<ClientToServerEvents, ServerToClientEvents>(
-      // @ts-ignore
-      res.socket.server,
-      {
-        path: "/api/socketio",
-        cors: {
-          origin: "*",
-          methods: ["GET", "POST"],
-          credentials: false
-        },
-        transports: ['polling'],
-        allowEIO3: true,
-        pingTimeout: 60000,
-        pingInterval: 25000
-      }
-    )
+      const io = new Server<ClientToServerEvents, ServerToClientEvents>(
+        // @ts-ignore
+        res.socket.server,
+        {
+          path: "/api/socketio",
+          cors: {
+            origin: "*",
+            methods: ["GET", "POST"],
+            credentials: false
+          },
+          transports: ['polling'],
+          allowEIO3: true,
+          pingTimeout: 60000,
+          pingInterval: 25000
+        }
+      )
 
     const broadcast = async (room: string | RoomState) => {
       const roomId = typeof room === "string" ? room : room.id
@@ -67,16 +68,17 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
       async (
         socket: socketIo.Socket<ClientToServerEvents, ServerToClientEvents>
       ) => {
-        console.log("New socket connection:", socket.id, "transport:", socket.conn.transport.name)
+        try {
+          console.log("New socket connection:", socket.id, "transport:", socket.conn.transport.name)
 
-        if (
-          !("roomId" in socket.handshake.query) ||
-          typeof socket.handshake.query.roomId !== "string"
-        ) {
-          console.log("Invalid roomId, disconnecting socket:", socket.id)
-          socket.disconnect()
-          return
-        }
+          if (
+            !("roomId" in socket.handshake.query) ||
+            typeof socket.handshake.query.roomId !== "string"
+          ) {
+            console.log("Invalid roomId, disconnecting socket:", socket.id)
+            socket.disconnect()
+            return
+          }
 
         const roomId = socket.handshake.query.roomId.toLowerCase()
         const log = (...props: any[]) => {
@@ -375,15 +377,18 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
         })
 
         socket.on("fetch", async () => {
-          const room = await getRoom(roomId)
-          if (room === null) {
-            throw new Error(
-              "Impossible non existing room, cannot send anything:" + roomId
-            )
-          }
+          try {
+            const room = await getRoom(roomId)
+            if (room === null) {
+              log("Room not found for fetch request")
+              return
+            }
 
-          room.serverTime = new Date().getTime()
-          socket.emit("update", room)
+            room.serverTime = new Date().getTime()
+            socket.emit("update", room)
+          } catch (error) {
+            log("Error handling fetch:", error)
+          }
         })
 
         // Chat event handlers
@@ -442,14 +447,22 @@ const ioHandler = (req: NextApiRequest, res: NextApiResponse) => {
           socket.to(roomId).emit("userTyping", user.uid, user.name, isTyping)
           log("user typing status:", user.name, isTyping)
         })
+        } catch (error) {
+          console.error("Socket connection error for socket", socket.id, ":", error)
+          socket.disconnect()
+        }
       }
     )
 
-    // @ts-ignore
-    res.socket.server.io = io
-  }
+      // @ts-ignore
+      res.socket.server.io = io
+    }
 
-  res.end()
+    res.end()
+  } catch (error) {
+    console.error("Socket.IO handler error:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
 }
 
 export const config = {

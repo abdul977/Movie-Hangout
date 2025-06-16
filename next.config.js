@@ -4,6 +4,10 @@
  * @type {import("next").NextConfig}
  **/
 const nextConfig = {
+  output: 'export',
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
+  distDir: 'out',
   env: {
     SITE_NAME: process.env.SITE_NAME,
     PUBLIC_DOMAIN: process.env.PUBLIC_DOMAIN,
